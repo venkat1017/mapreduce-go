@@ -1,0 +1,21 @@
+doc1: the quick brown fox jumps over the lazy dog
+hello world
+hello mapreduce
+this is a test
+mapreduce is fun
+
+doc2: distributed systems are fun and challenging
+mapreduce is a distributed computing paradigm
+hello distributed world
+
+doc3: the fox is quick and the dog is lazy
+mapreduce enables large scale data processing
+hello again world
+
+doc4: big data is processed with mapreduce
+foxes are quick and dogs are lazy
+hello to the world of distributed systems
+
+doc5: test your code with large datasets
+mapreduce can process petabytes of data
+world of big data and distributed computing 

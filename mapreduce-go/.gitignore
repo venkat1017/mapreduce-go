@@ -1,0 +1,5 @@
+# MapReduce Go outputs
+mr-out-*
+mr-*-*
+result.txt
+*.log 

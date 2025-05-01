@@ -1,0 +1,3 @@
+doc1: hello world
+doc2: hello mapreduce
+doc3: world of mapreduce
