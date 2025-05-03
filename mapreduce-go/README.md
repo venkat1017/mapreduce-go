@@ -126,6 +126,43 @@ All commands support `-h` or `--help` for colorful, detailed usage info.
 - Robust error handling and exit codes
 - Colorful CLI banners and output
 
+## ⚡ Combiner Optimization
+
+A **combiner** is a mini-reduce function that runs after the map phase, before shuffling data to reducers. It aggregates duplicate keys locally on each map worker, reducing the amount of intermediate data written and transferred.
+
+**How it works in this implementation:**
+- After the map function runs for all lines in a map task, the worker groups key-value pairs by key.
+- For jobs like word count, the combiner sums the counts for each word before writing to intermediate files.
+- This means each word appears only once per map task per partition, with its local count.
+
+**Example (Word Count):**
+
+Suppose a map task processes these lines:
+```
+hello world
+hello mapreduce
+hello world
+```
+
+**Without combiner, intermediate output:**
+```
+{"Key":"hello","Value":"1"}
+{"Key":"world","Value":"1"}
+{"Key":"hello","Value":"1"}
+{"Key":"mapreduce","Value":"1"}
+{"Key":"hello","Value":"1"}
+{"Key":"world","Value":"1"}
+```
+
+**With combiner, intermediate output:**
+```
+{"Key":"hello","Value":"3"}
+{"Key":"world","Value":"2"}
+{"Key":"mapreduce","Value":"1"}
+```
+
+This reduces disk and network I/O, making your MapReduce jobs faster and more scalable!
+
 ---
 
 ## 🤝 Contributing

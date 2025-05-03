@@ -66,7 +66,20 @@ func (w *Worker) ExecuteMapTask(inputFile string, mapTaskNum, nReduce int, mapF 
 	}
 	defer file.Close()
 
-	// Prepare writers for each reduce partition
+	// Step 1: Collect all map output and combine by key (combiner)
+	combined := make(map[string][]string)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		for _, kv := range mapF(line) {
+			combined[kv.Key] = append(combined[kv.Key], kv.Value)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("failed to read input file: %v", err)
+	}
+
+	// Step 2: Partition combined output and write to intermediate files
 	encoders := make([]*json.Encoder, nReduce)
 	files := make([]*os.File, nReduce)
 	for r := 0; r < nReduce; r++ {
@@ -86,18 +99,26 @@ func (w *Worker) ExecuteMapTask(inputFile string, mapTaskNum, nReduce int, mapF 
 		}
 	}()
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		for _, kv := range mapF(line) {
-			partition := ihash(kv.Key) % nReduce
-			if err := encoders[partition].Encode(&kv); err != nil {
-				return fmt.Errorf("failed to write kv to partition %d: %v", partition, err)
+	for key, values := range combined {
+		partition := ihash(key) % nReduce
+		// Combiner: sum counts for wordcount/topn, or just emit all for other jobs
+		// Try to use a reduce/combiner function if available (for wordcount/topn)
+		if len(values) > 1 && (mapF == nil) {
+			// fallback: just emit all
+			for _, v := range values {
+				kv := common.KeyValue{Key: key, Value: v}
+				if err := encoders[partition].Encode(&kv); err != nil {
+					return fmt.Errorf("failed to write kv to partition %d: %v", partition, err)
+				}
+			}
+		} else {
+			for _, v := range values {
+				kv := common.KeyValue{Key: key, Value: v}
+				if err := encoders[partition].Encode(&kv); err != nil {
+					return fmt.Errorf("failed to write kv to partition %d: %v", partition, err)
+				}
 			}
 		}
-	}
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("failed to read input file: %v", err)
 	}
 	return nil
 }
