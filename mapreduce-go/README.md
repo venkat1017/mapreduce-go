@@ -5,7 +5,7 @@
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)]() 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue)](./CONTRIBUTING.md)
 
-> **A modern, production-ready, distributed MapReduce framework in Go.**  
+> **A modern, demo-ready, distributed MapReduce framework in Go.**  
 > Inspired by the original [Google MapReduce paper](https://research.google/pubs/pub62/).
 
 ---
